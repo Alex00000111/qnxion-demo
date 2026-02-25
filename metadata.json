@@ -1,0 +1,8 @@
+{
+  "name": "QNXION V1.1",
+  "description": "An advanced LinkedIn and multi-channel outreach portal featuring an automated engagement ecosystem. Companies collaborate to multiply visibility through reciprocal commenting, resharing, and social credits.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
