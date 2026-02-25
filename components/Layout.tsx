@@ -37,7 +37,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePage, onNavigate
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-6 border-b border-gray-100 flex items-center gap-2">
-          <img src="/tpac-logo.jpg" alt="TPAC" className="h-8 w-auto rounded" />
+          <img src="/TPAC_Impact_Collective_Logo.jpg" alt="TPAC" className="h-8 w-auto rounded" />
           <span className="text-xl font-bold text-gray-900 tracking-tight">QNXION</span>
         </div>
 
@@ -121,7 +121,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePage, onNavigate
                 <p className="text-xs text-gray-500">Founding Member</p>
               </div>
               <img 
-                src="https://picsum.photos/seed/admin/40/40" 
+                src="/Emmanuel.jpg"
                 alt="Profile" 
                 className="w-10 h-10 rounded-full border border-gray-200"
               />

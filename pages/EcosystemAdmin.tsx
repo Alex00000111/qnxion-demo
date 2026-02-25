@@ -4,10 +4,10 @@ import { Search, Filter, MoreHorizontal, Plus, ArrowUpRight, ArrowDownLeft, Shie
 import { Company } from '../types';
 
 const mockCompanies: Company[] = [
-  { id: '1', name: 'TechFlow Solutions', industry: 'SaaS', credits: 4200, avatar: 'https://picsum.photos/seed/techflow/40/40', isBlacklisted: false },
-  { id: '2', name: 'Peresoft', industry: 'ERP Solutions', credits: 3850, avatar: 'https://picsum.photos/seed/peresoft/40/40', isBlacklisted: false },
-  { id: '3', name: 'Realm ID', industry: 'Digital Identity', credits: 5100, avatar: 'https://picsum.photos/seed/realmid/40/40', isBlacklisted: false },
-  { id: '4', name: 'Sage Enterprise', industry: 'Accounting', credits: 3200, avatar: 'https://picsum.photos/seed/sage-e/40/40', isBlacklisted: false },
+  { id: '1', name: 'TechFlow Solutions', industry: 'SaaS', credits: 4200, avatar: '/techflow_solutions_inc_logo.jpg', isBlacklisted: false },
+  { id: '2', name: 'Peresoft', industry: 'ERP Solutions', credits: 3850, avatar: '/peresoft_logo.jpg', isBlacklisted: false },
+  { id: '3', name: 'Realm ID', industry: 'Digital Identity', credits: 5100, avatar: '/realm_id_logo.jpg', isBlacklisted: false },
+  { id: '4', name: 'Sage Enterprise', industry: 'Accounting', credits: 3200, avatar: '/enterprisesage_logo.jpg', isBlacklisted: false },
   { id: '5', name: 'Cradle Tech', industry: 'FinTech', credits: 2840, avatar: 'https://picsum.photos/seed/cradle/40/40', isBlacklisted: false },
   { id: '6', name: 'Asamco Digital', industry: 'Marketing', credits: 1950, avatar: 'https://picsum.photos/seed/asamco/40/40', isBlacklisted: false },
 ];
@@ -15,11 +15,11 @@ const mockCompanies: Company[] = [
 // ── SVG node positions in a 620 × 320 viewBox ──────────────────────────────
 const CENTER = { x: 310, y: 148 };
 const PARTNERS = [
-  { id: 'techflow', name: 'TechFlow Solutions', x: 82,  y: 72,  gcu: '+3 GCU', dur: '2.4s', begin: '0s',   active: true  },
-  { id: 'peresoft', name: 'Peresoft',            x: 538, y: 72,  gcu: '+1 GCU', dur: '2.8s', begin: '0.6s', active: true  },
-  { id: 'realmid',  name: 'Realm ID',            x: 552, y: 210, gcu: '+2 GCU', dur: '2.0s', begin: '1.1s', active: true  },
-  { id: 'sage',     name: 'Sage Enterprise',     x: 400, y: 268, gcu: '+1 GCU', dur: '3.2s', begin: '0.3s', active: false },
-  { id: 'cradle',   name: 'Cradle Tech',         x: 78,  y: 250, gcu: '+2 GCU', dur: '2.6s', begin: '0.9s', active: false },
+  { id: 'techflow', name: 'TechFlow Solutions', logo: '/techflow_solutions_inc_logo.jpg', x: 82,  y: 72,  gcu: '+3 GCU', dur: '2.4s', begin: '0s',   active: true  },
+  { id: 'peresoft', name: 'Peresoft',            logo: '/peresoft_logo.jpg',               x: 538, y: 72,  gcu: '+1 GCU', dur: '2.8s', begin: '0.6s', active: true  },
+  { id: 'realmid',  name: 'Realm ID',            logo: '/realm_id_logo.jpg',               x: 552, y: 210, gcu: '+2 GCU', dur: '2.0s', begin: '1.1s', active: true  },
+  { id: 'sage',     name: 'Sage Enterprise',     logo: '/enterprisesage_logo.jpg',         x: 400, y: 268, gcu: '+1 GCU', dur: '3.2s', begin: '0.3s', active: false },
+  { id: 'cradle',   name: 'Cradle Tech',         logo: `https://picsum.photos/seed/cradle/40/40`, x: 78, y: 250, gcu: '+2 GCU', dur: '2.6s', begin: '0.9s', active: false },
 ];
 
 // ── Count-up hook (same as Dashboard) ───────────────────────────────────────
@@ -138,7 +138,7 @@ const CreditFlowTab: React.FC = () => {
               <React.Fragment key={`node-${p.id}`}>
                 <circle cx={p.x} cy={p.y} r="22" fill="white" stroke={p.active ? '#a5b4fc' : '#e5e7eb'} strokeWidth="2" />
                 <image
-                  href={`https://picsum.photos/seed/${p.id}/40/40`}
+                  href={p.logo}
                   x={p.x - 20} y={p.y - 20}
                   width="40" height="40"
                   clipPath={`url(#cfclip-${p.id})`}

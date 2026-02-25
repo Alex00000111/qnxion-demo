@@ -26,7 +26,7 @@ const mockActions = [
 ];
 
 const mockCompanyAccounts = [
-  { id: 'acc1', name: 'Emmanuel', role: 'Founding Member & Ecosystem Lead', creditsEarned: 3240, creditsSpent: 1800, status: 'Active', avatar: 'https://picsum.photos/seed/emmanuel/40/40' },
+  { id: 'acc1', name: 'Emmanuel', role: 'Founding Member & Ecosystem Lead', creditsEarned: 3240, creditsSpent: 1800, status: 'Active', avatar: '/Emmanuel.jpg' },
   { id: 'acc2', name: 'Naledi Dlamini', role: 'Head of Partnerships', creditsEarned: 2150, creditsSpent: 1400, status: 'Active', avatar: 'https://picsum.photos/seed/naledi/40/40' },
   { id: 'acc3', name: 'Sipho Mkhize', role: 'Content Strategist', creditsEarned: 1860, creditsSpent: 950, status: 'Active', avatar: 'https://picsum.photos/seed/sipho/40/40' },
 ];

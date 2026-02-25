@@ -28,7 +28,7 @@ export const Marketing: React.FC<MarketingProps> = ({ onGetStarted }) => {
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center">
             <img 
-              src="/tpac-logo.jpg" 
+              src="/TPAC_Impact_Collective_Logo.jpg"
               alt="TPAC Logo" 
               className="h-12 w-auto"
             />
@@ -186,7 +186,7 @@ export const Marketing: React.FC<MarketingProps> = ({ onGetStarted }) => {
       <footer className="py-20 px-6 border-t border-gray-100">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
           <img 
-            src="/tpac-logo.jpg" 
+            src="/TPAC_Impact_Collective_Logo.jpg"
             alt="TPAC Logo" 
             className="h-10 grayscale opacity-50"
           />

@@ -159,7 +159,7 @@ const ReviewCenter = () => {
               regenerating === selected.id ? 'animate-shimmer' : ''
             }`}>
               <div className="flex items-center gap-3 mb-4">
-                <img src="https://picsum.photos/seed/emmanuel-tpac/40/40" className="w-10 h-10 rounded-full" alt="Emmanuel" />
+                <img src="/Emmanuel.jpg" className="w-10 h-10 rounded-full object-cover" alt="Emmanuel" />
                 <div>
                   <p className="text-sm font-bold text-gray-900">Emmanuel</p>
                   <p className="text-xs text-gray-400">Founding Member at TPAC Impact Collective</p>
