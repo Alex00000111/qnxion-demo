@@ -12,14 +12,14 @@ const mockCompanies: Company[] = [
   { id: '6', name: 'Asamco Digital', industry: 'Marketing', credits: 1950, avatar: 'https://picsum.photos/seed/asamco/40/40', isBlacklisted: false },
 ];
 
-// ── SVG node positions in a 600 × 280 viewBox ──────────────────────────────
-const CENTER = { x: 300, y: 140 };
+// ── SVG node positions in a 620 × 320 viewBox ──────────────────────────────
+const CENTER = { x: 310, y: 148 };
 const PARTNERS = [
-  { id: 'techflow', name: 'TechFlow Solutions', x: 80,  y: 55,  gcu: '+3 GCU', dur: '2.4s', begin: '0s',   active: true  },
-  { id: 'peresoft', name: 'Peresoft',           x: 520, y: 55,  gcu: '+1 GCU', dur: '2.8s', begin: '0.6s', active: true  },
-  { id: 'realmid',  name: 'Realm ID',           x: 548, y: 190, gcu: '+2 GCU', dur: '2.0s', begin: '1.1s', active: true  },
-  { id: 'sage',     name: 'Sage Enterprise',    x: 390, y: 262, gcu: '+1 GCU', dur: '3.2s', begin: '0.3s', active: false },
-  { id: 'cradle',   name: 'Cradle Tech',        x: 85,  y: 232, gcu: '+2 GCU', dur: '2.6s', begin: '0.9s', active: false },
+  { id: 'techflow', name: 'TechFlow Solutions', x: 82,  y: 72,  gcu: '+3 GCU', dur: '2.4s', begin: '0s',   active: true  },
+  { id: 'peresoft', name: 'Peresoft',            x: 538, y: 72,  gcu: '+1 GCU', dur: '2.8s', begin: '0.6s', active: true  },
+  { id: 'realmid',  name: 'Realm ID',            x: 552, y: 210, gcu: '+2 GCU', dur: '2.0s', begin: '1.1s', active: true  },
+  { id: 'sage',     name: 'Sage Enterprise',     x: 400, y: 268, gcu: '+1 GCU', dur: '3.2s', begin: '0.3s', active: false },
+  { id: 'cradle',   name: 'Cradle Tech',         x: 78,  y: 250, gcu: '+2 GCU', dur: '2.6s', begin: '0.9s', active: false },
 ];
 
 // ── Count-up hook (same as Dashboard) ───────────────────────────────────────
@@ -42,7 +42,7 @@ function useCountUp(target: number, duration = 1200, run = true): number {
   return value;
 }
 
-// ── Credit Flow Visualisation ─────────────────────────────────────────────
+// ── Credit Flow Visualisation — pure SVG, zero HTML overlay ─────────────
 const CreditFlowTab: React.FC = () => {
   const weeklyCredits = useCountUp(847, 1000, true);
 
@@ -59,105 +59,134 @@ const CreditFlowTab: React.FC = () => {
         </div>
       </div>
 
-      {/* SVG graph */}
+      {/* SVG graph — everything lives inside the SVG, no coordinate mismatch */}
       <div className="bg-white border border-gray-200 rounded-2xl shadow-[0_4px_24px_rgba(99,102,241,0.06)] p-6">
         <h3 className="text-sm font-bold text-gray-700 mb-4">Live Credit Flow</h3>
-        <div className="relative w-full" style={{ height: '320px' }}>
-          {/* SVG for lines + animated dots — behind HTML nodes */}
+        <div className="flex justify-center">
           <svg
-            viewBox="0 0 600 280"
-            className="absolute inset-0 w-full h-full"
-            preserveAspectRatio="xMidYMid meet"
+            viewBox="0 0 620 320"
+            width="620"
+            height="320"
+            style={{ maxWidth: '100%', display: 'block' }}
           >
             <defs>
               <linearGradient id="cfDotGrad" x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stopColor="#6366f1" />
                 <stop offset="100%" stopColor="#8b5cf6" />
               </linearGradient>
+              <linearGradient id="cfCenterGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#6366f1" />
+                <stop offset="100%" stopColor="#4f46e5" />
+              </linearGradient>
+              {/* Circular clip masks for each partner avatar */}
+              {PARTNERS.map(p => (
+                <clipPath key={`clip-${p.id}`} id={`cfclip-${p.id}`}>
+                  <circle cx={p.x} cy={p.y} r="20" />
+                </clipPath>
+              ))}
             </defs>
 
+            {/* ── Layer 1: Dashed connection lines + hidden motion paths + GCU labels ── */}
             {PARTNERS.map(p => (
-              <React.Fragment key={p.id}>
-                {/* Define path for animateMotion */}
+              <React.Fragment key={`line-${p.id}`}>
                 <path
                   id={`cfpath-${p.id}`}
                   d={`M ${CENTER.x} ${CENTER.y} L ${p.x} ${p.y}`}
                   fill="none"
                   stroke="none"
                 />
-                {/* Static line */}
                 <line
                   x1={CENTER.x} y1={CENTER.y}
                   x2={p.x} y2={p.y}
                   stroke="#e0e7ff"
                   strokeWidth="1.5"
+                  strokeDasharray="4 3"
                 />
-                {/* Mid-point GCU label */}
                 <text
                   x={(CENTER.x + p.x) / 2}
-                  y={(CENTER.y + p.y) / 2 - 6}
+                  y={(CENTER.y + p.y) / 2 - 7}
                   textAnchor="middle"
                   fontSize="9"
-                  fontWeight="600"
+                  fontWeight="700"
                   fill="#6366f1"
-                  opacity="0.75"
+                  opacity="0.8"
                 >
                   {p.gcu}
                 </text>
-                {/* Traveling dot */}
-                <circle r="5" fill="url(#cfDotGrad)" opacity="0.9">
-                  <animateMotion dur={p.dur} repeatCount="indefinite" begin={p.begin}>
-                    <mpath href={`#cfpath-${p.id}`} />
-                  </animateMotion>
-                </circle>
-                {/* Active reciprocity pulse ring (SVG animate) */}
-                {p.active && (
-                  <circle cx={p.x} cy={p.y} r="28" fill="none" stroke="#10b981" strokeWidth="2">
-                    <animate attributeName="opacity" values="0.35;0;0.35" dur="4s" repeatCount="indefinite" />
-                    <animate attributeName="r" values="24;34;24" dur="4s" repeatCount="indefinite" />
-                  </circle>
-                )}
               </React.Fragment>
             ))}
-          </svg>
 
-          {/* HTML Nodes — positioned via percentage to match SVG viewBox */}
-          {/* Centre node — Emmanuel */}
-          <div
-            className="absolute flex flex-col items-center"
-            style={{ left: `${(CENTER.x / 600) * 100}%`, top: `${(CENTER.y / 280) * 100}%`, transform: 'translate(-50%, -50%)' }}
-          >
-            <div className="w-14 h-14 rounded-full bg-indigo-600 ring-4 ring-indigo-200 flex items-center justify-center shadow-lg shadow-indigo-200">
-              <span className="text-white text-xs font-extrabold">EM</span>
-            </div>
-            <span className="mt-1.5 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full">Emmanuel</span>
-          </div>
+            {/* ── Layer 2: Active reciprocity pulse rings ── */}
+            {PARTNERS.filter(p => p.active).map(p => (
+              <circle key={`ring-${p.id}`} cx={p.x} cy={p.y} r="24" fill="none" stroke="#10b981" strokeWidth="1.5">
+                <animate attributeName="opacity" values="0.45;0;0.45" dur="3.5s" repeatCount="indefinite" />
+                <animate attributeName="r" values="22;32;22" dur="3.5s" repeatCount="indefinite" />
+              </circle>
+            ))}
 
-          {/* Partner nodes */}
-          {PARTNERS.map(p => (
-            <div
-              key={p.id}
-              className="absolute flex flex-col items-center"
-              style={{ left: `${(p.x / 600) * 100}%`, top: `${(p.y / 280) * 100}%`, transform: 'translate(-50%, -50%)' }}
-            >
-              <div className={`w-10 h-10 rounded-full bg-white border-2 flex items-center justify-center shadow-sm overflow-hidden ${
-                p.active ? 'border-indigo-300' : 'border-gray-200'
-              }`}>
-                <img
-                  src={`https://picsum.photos/seed/${p.id}/40/40`}
-                  className="w-full h-full object-cover"
-                  alt={p.name}
+            {/* ── Layer 3: Traveling dots ── */}
+            {PARTNERS.map(p => (
+              <circle key={`dot-${p.id}`} r="4.5" fill="url(#cfDotGrad)" opacity="0.9">
+                <animateMotion dur={p.dur} repeatCount="indefinite" begin={p.begin}>
+                  <mpath href={`#cfpath-${p.id}`} />
+                </animateMotion>
+              </circle>
+            ))}
+
+            {/* ── Layer 4: Partner nodes — white disc + clipped avatar image + label ── */}
+            {PARTNERS.map(p => (
+              <React.Fragment key={`node-${p.id}`}>
+                <circle cx={p.x} cy={p.y} r="22" fill="white" stroke={p.active ? '#a5b4fc' : '#e5e7eb'} strokeWidth="2" />
+                <image
+                  href={`https://picsum.photos/seed/${p.id}/40/40`}
+                  x={p.x - 20} y={p.y - 20}
+                  width="40" height="40"
+                  clipPath={`url(#cfclip-${p.id})`}
+                  preserveAspectRatio="xMidYMid slice"
                 />
-              </div>
-              <span className="mt-1 text-[9px] font-semibold text-gray-600 text-center leading-tight max-w-[64px]">
-                {p.name.split(' ').slice(0, 2).join(' ')}
-              </span>
-            </div>
-          ))}
+                {p.name.split(' ').slice(0, 2).map((word, wi) => (
+                  <text
+                    key={wi}
+                    x={p.x}
+                    y={p.y + 30 + wi * 11}
+                    textAnchor="middle"
+                    fontSize="9"
+                    fontWeight="600"
+                    fill="#4b5563"
+                  >
+                    {word}
+                  </text>
+                ))}
+              </React.Fragment>
+            ))}
+
+            {/* ── Layer 5: Centre node — Emmanuel (renders on top of everything) ── */}
+            <circle cx={CENTER.x} cy={CENTER.y} r="34" fill="none" stroke="#c7d2fe" strokeWidth="2.5" />
+            <circle cx={CENTER.x} cy={CENTER.y} r="30" fill="url(#cfCenterGrad)" />
+            <text
+              x={CENTER.x} y={CENTER.y + 1}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize="11"
+              fontWeight="800"
+              fill="white"
+            >
+              EM
+            </text>
+            <text
+              x={CENTER.x} y={CENTER.y + 47}
+              textAnchor="middle"
+              fontSize="10"
+              fontWeight="700"
+              fill="#4f46e5"
+            >
+              Emmanuel
+            </text>
+          </svg>
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-6 pt-3 border-t border-gray-100 mt-2">
+        <div className="flex items-center gap-6 pt-3 border-t border-gray-100 mt-3">
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
             <div className="w-3 h-3 rounded-full bg-indigo-500 opacity-80" />
             Ecosystem Credit
