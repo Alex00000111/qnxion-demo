@@ -1,10 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { TrendingUp, Users, Heart, Share2, MessageSquare, Award, Sparkles, Eye, Search, BarChart3, Zap, X, CheckCircle2, ExternalLink } from 'lucide-react';
 import { MOCK_ECMS_METRICS, MOCK_ACTIVITY_FEED, MOCK_ENGAGEMENT_CHART, MOCK_LINKEDIN_METRICS } from '../lib/mockData';
+import type { ActivityFeedItem } from '../types';
 
 interface DashboardProps {
   managementMode: 'self' | 'agency';
@@ -12,6 +13,28 @@ interface DashboardProps {
 
 const CONFETTI_COLORS = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'];
 
+// ── Smooth ease-out counter ──────────────────────────────────────────────────
+function useCountUp(target: number, duration = 1200): number {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    let start: number | null = null;
+    let raf: number;
+    const step = (timestamp: number) => {
+      if (!start) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+      setValue(Math.round(target * eased));
+      if (progress < 1) {
+        raf = requestAnimationFrame(step);
+      }
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return value;
+}
+
+// ── Amplify Modal ────────────────────────────────────────────────────────────
 const AmplifyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [url, setUrl] = useState('');
   const [phase, setPhase] = useState<'input' | 'success'>('input');
@@ -71,7 +94,6 @@ const AmplifyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           </div>
         ) : (
           <div className="p-8 text-center relative overflow-hidden">
-            {/* Confetti */}
             {confetti.map(c => (
               <div
                 key={c.id}
@@ -104,12 +126,42 @@ const AmplifyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   );
 };
 
+// ── Dashboard ────────────────────────────────────────────────────────────────
+type FeedEntry = ActivityFeedItem & { renderKey: string };
+
 export const Dashboard: React.FC<DashboardProps> = ({ managementMode }) => {
   const [showAmplify, setShowAmplify] = useState(false);
+
+  // Animated counters
+  const animPersonalCredits = useCountUp(MOCK_ECMS_METRICS.personalCredits, 1200);
+  const animReactions = useCountUp(3840, 1200);
+  const animReposts = useCountUp(890, 1200);
+  const animComments = useCountUp(412, 1200);
+
+  // Rotating live feed
+  const [feedItems, setFeedItems] = useState<FeedEntry[]>(
+    MOCK_ACTIVITY_FEED.slice(0, 6).map((item, i) => ({ ...item, renderKey: `init-${i}` }))
+  );
+  const [latestRenderKey, setLatestRenderKey] = useState('none');
+  const feedCycleRef = useRef(6); // start cycling from index 6 (new items)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const idx = feedCycleRef.current % MOCK_ACTIVITY_FEED.length;
+      feedCycleRef.current = feedCycleRef.current + 1;
+      const nextItem = MOCK_ACTIVITY_FEED[idx];
+      const newKey = `cycle-${Date.now()}`;
+      const newEntry: FeedEntry = { ...nextItem, renderKey: newKey, timeAgo: 'Just now' };
+      setFeedItems(prev => [newEntry, ...prev.slice(0, 5)]);
+      setLatestRenderKey(newKey);
+    }, 8000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="space-y-8">
       {showAmplify && <AmplifyModal onClose={() => setShowAmplify(false)} />}
+
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-[0_4px_24px_rgba(99,102,241,0.06)] card-hover">
@@ -120,7 +172,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ managementMode }) => {
             <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">+24%</span>
           </div>
           <p className="text-sm text-gray-500 font-medium">Personal Credits</p>
-          <p className="text-2xl font-bold text-gray-900">{MOCK_ECMS_METRICS.personalCredits.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-gray-900">{animPersonalCredits.toLocaleString()}</p>
           <div className="mt-4 w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
             <div className="bg-indigo-600 h-full w-4/5"></div>
           </div>
@@ -135,7 +187,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ managementMode }) => {
             <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">+185%</span>
           </div>
           <p className="text-sm text-gray-500 font-medium">Ecosystem Reactions</p>
-          <p className="text-2xl font-bold text-gray-900">3,840</p>
+          <p className="text-2xl font-bold text-gray-900">{animReactions.toLocaleString()}</p>
           <p className="mt-2 text-xs text-gray-400">Total reactions from partners</p>
         </div>
 
@@ -147,7 +199,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ managementMode }) => {
             <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">+240%</span>
           </div>
           <p className="text-sm text-gray-500 font-medium">Ecosystem Reposts</p>
-          <p className="text-2xl font-bold text-gray-900">890</p>
+          <p className="text-2xl font-bold text-gray-900">{animReposts.toLocaleString()}</p>
           <p className="mt-2 text-xs text-gray-400">Viral reach via reshares</p>
         </div>
 
@@ -159,7 +211,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ managementMode }) => {
             <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">+94%</span>
           </div>
           <p className="text-sm text-gray-500 font-medium">Ecosystem Comments</p>
-          <p className="text-2xl font-bold text-gray-900">412</p>
+          <p className="text-2xl font-bold text-gray-900">{animComments.toLocaleString()}</p>
           <p className="mt-2 text-xs text-gray-400">AI-suggested & human replies</p>
         </div>
       </div>
@@ -260,7 +312,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ managementMode }) => {
           </div>
         </div>
 
-        {/* Sidebar Activity */}
+        {/* Sidebar Activity — rotating live feed */}
         <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-[0_4px_24px_rgba(99,102,241,0.06)]">
           <h3 className="text-lg font-bold text-gray-900 mb-6">Recent Ecosystem Activity</h3>
           {managementMode === 'agency' && (
@@ -270,9 +322,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ managementMode }) => {
             </div>
           )}
           <div className="space-y-6">
-            {MOCK_ACTIVITY_FEED.map((item) => (
-              <div key={item.id} className="flex gap-4">
-                <div className="relative">
+            {feedItems.map((item) => (
+              <div
+                key={item.renderKey}
+                className={`flex gap-4 ${item.renderKey === latestRenderKey ? 'animate-in fade-in slide-in-from-top-2 duration-[400ms]' : ''}`}
+              >
+                <div className="relative flex-shrink-0">
                   <img src={`https://picsum.photos/seed/${item.avatarSeed}/40/40`} className="w-10 h-10 rounded-full" alt="Partner" />
                   <div className="absolute -bottom-1 -right-1 bg-green-500 w-3 h-3 rounded-full border-2 border-white"></div>
                 </div>

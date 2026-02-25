@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar
@@ -7,8 +7,70 @@ import {
 import { Clock, TrendingUp, Users, Heart, MessageSquare, Share2, Eye } from 'lucide-react';
 import { MOCK_ECMS_METRICS, MOCK_CHART_DATA, MOCK_LINKEDIN_METRICS } from '../lib/mockData';
 
+type TimeRange = '7d' | '30d' | '90d';
+
+// ── Metrics per time range ────────────────────────────────────────────────
+const RANGE_METRICS: Record<TimeRange, {
+  impressions: number; impressionsChange: number;
+  followers: number; followersChange: number;
+  reactions: number; reactionsChange: number;
+  comments: number; commentsChange: number;
+  reposts: number; repostsChange: number;
+  label: string;
+}> = {
+  '7d': {
+    impressions: 8400,   impressionsChange: 12,
+    followers: 42,       followersChange: 18,
+    reactions: 680,      reactionsChange: 31,
+    comments: 74,        commentsChange: 22,
+    reposts: 148,        repostsChange: 44,
+    label: '7-day',
+  },
+  '30d': {
+    impressions: 45200,  impressionsChange: 34,
+    followers: 215,      followersChange: 215,
+    reactions: 3840,     reactionsChange: 185,
+    comments: 412,       commentsChange: 94,
+    reposts: 890,        repostsChange: 240,
+    label: '30-day',
+  },
+  '90d': {
+    impressions: 118600, impressionsChange: 67,
+    followers: 640,      followersChange: 58,
+    reactions: 9200,     reactionsChange: 210,
+    comments: 1040,      commentsChange: 128,
+    reposts: 2480,       repostsChange: 290,
+    label: '90-day',
+  },
+};
+
+// Generate 90-day chart data by extrapolating from the 30-day array
+const CHART_DATA_90D = Array.from({ length: 90 }, (_, i) => {
+  const base = MOCK_CHART_DATA[i % 30];
+  const factor = 1 + (i / 90) * 0.6;
+  return {
+    ...base,
+    day: `Day ${i + 1}`,
+    impressions: Math.round(base.impressions * factor),
+    followers: Math.round(base.followers * (1 + i * 0.007)),
+    ecosystemMultiplier: Math.round((base.ecosystemMultiplier ?? 0) * factor),
+  };
+});
+
 export const Analytics: React.FC = () => {
-  // Use a subset of 7-day chart data for the reach comparison
+  const [timeRange, setTimeRange] = useState<TimeRange>('30d');
+
+  const metrics = RANGE_METRICS[timeRange];
+
+  // Chart data per range
+  const chartData =
+    timeRange === '7d'
+      ? MOCK_CHART_DATA.slice(-7)
+      : timeRange === '90d'
+      ? CHART_DATA_90D
+      : MOCK_CHART_DATA;
+
+  // Reach comparison (always 7 data points for the top section chart)
   const reachData = MOCK_CHART_DATA.slice(-7).map((d, i) => ({
     name: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i],
     qnxion: d.impressions,
@@ -111,13 +173,24 @@ export const Analytics: React.FC = () => {
         </div>
       </div>
 
-      {/* LinkedIn Company Page Analytics */}
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold text-gray-900">LinkedIn Company Page Analytics</h2>
-        <p className="text-sm text-gray-500">30-day performance overview powered by QNXION ecosystem</p>
+      {/* LinkedIn Company Page Analytics — with time range selector */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-bold text-gray-900">LinkedIn Company Page Analytics</h2>
+          <p className="text-sm text-gray-500">{metrics.label} performance overview powered by QNXION ecosystem</p>
+        </div>
+        <select
+          value={timeRange}
+          onChange={e => setTimeRange(e.target.value as TimeRange)}
+          className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none shadow-sm"
+        >
+          <option value="7d">Last 7 days</option>
+          <option value="30d">Last 30 days</option>
+          <option value="90d">Last 90 days</option>
+        </select>
       </div>
 
-      {/* Engagement Summary Cards */}
+      {/* Engagement Summary Cards — update per range */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-[0_4px_24px_rgba(99,102,241,0.06)] card-hover">
           <div className="flex items-center justify-between mb-2">
@@ -125,9 +198,9 @@ export const Analytics: React.FC = () => {
               <div className="p-2 bg-pink-50 text-pink-600 rounded-lg"><Heart size={20} /></div>
               <span className="text-sm font-medium text-gray-500">Reactions</span>
             </div>
-            <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">+{MOCK_LINKEDIN_METRICS.content.reactionsChange}%</span>
+            <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">+{metrics.reactionsChange}%</span>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{MOCK_LINKEDIN_METRICS.content.reactions.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-gray-900">{metrics.reactions.toLocaleString()}</p>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-[0_4px_24px_rgba(99,102,241,0.06)] card-hover">
           <div className="flex items-center justify-between mb-2">
@@ -135,9 +208,9 @@ export const Analytics: React.FC = () => {
               <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><MessageSquare size={20} /></div>
               <span className="text-sm font-medium text-gray-500">Comments</span>
             </div>
-            <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">+{MOCK_LINKEDIN_METRICS.content.commentsChange}%</span>
+            <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">+{metrics.commentsChange}%</span>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{MOCK_LINKEDIN_METRICS.content.comments.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-gray-900">{metrics.comments.toLocaleString()}</p>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-[0_4px_24px_rgba(99,102,241,0.06)] card-hover">
           <div className="flex items-center justify-between mb-2">
@@ -145,9 +218,9 @@ export const Analytics: React.FC = () => {
               <div className="p-2 bg-purple-50 text-purple-600 rounded-lg"><Share2 size={20} /></div>
               <span className="text-sm font-medium text-gray-500">Reposts</span>
             </div>
-            <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">+{MOCK_LINKEDIN_METRICS.content.repostsChange}%</span>
+            <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">+{metrics.repostsChange}%</span>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{MOCK_LINKEDIN_METRICS.content.reposts.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-gray-900">{metrics.reposts.toLocaleString()}</p>
         </div>
       </div>
 
@@ -155,12 +228,12 @@ export const Analytics: React.FC = () => {
         {/* Impressions Chart */}
         <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-[0_4px_24px_rgba(99,102,241,0.06)]">
           <div className="mb-6">
-            <h3 className="text-lg font-bold text-gray-900">Impressions (30-Day Trend)</h3>
+            <h3 className="text-lg font-bold text-gray-900">Impressions ({metrics.label} Trend)</h3>
             <p className="text-sm text-gray-500">Organic vs. Ecosystem Multiplier</p>
           </div>
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={MOCK_CHART_DATA}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorImpressions" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15}/>
@@ -172,7 +245,7 @@ export const Analytics: React.FC = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 11}} interval={4} />
+                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 11}} interval={Math.floor(chartData.length / 6)} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 11}} />
                 <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
                 <Area type="monotone" dataKey="impressions" stroke="#6366f1" fillOpacity={1} fill="url(#colorImpressions)" strokeWidth={2} name="Total Impressions" />
@@ -186,11 +259,11 @@ export const Analytics: React.FC = () => {
         <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-[0_4px_24px_rgba(99,102,241,0.06)]">
           <div className="mb-6">
             <h3 className="text-lg font-bold text-gray-900">Follower Growth</h3>
-            <p className="text-sm text-gray-500">{MOCK_LINKEDIN_METRICS.followers.total.toLocaleString()} total • +{MOCK_LINKEDIN_METRICS.followers.newFollowers} new this month</p>
+            <p className="text-sm text-gray-500">{MOCK_LINKEDIN_METRICS.followers.total.toLocaleString()} total • +{metrics.followers} new this period</p>
           </div>
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={MOCK_CHART_DATA}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.15}/>
@@ -198,7 +271,7 @@ export const Analytics: React.FC = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 11}} interval={4} />
+                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 11}} interval={Math.floor(chartData.length / 6)} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 11}} domain={['dataMin - 50', 'dataMax + 50']} />
                 <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
                 <Area type="monotone" dataKey="followers" stroke="#10b981" fillOpacity={1} fill="url(#colorFollowers)" strokeWidth={2} name="Followers" />

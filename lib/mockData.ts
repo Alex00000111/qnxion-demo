@@ -86,6 +86,12 @@ export const MOCK_ACTIVITY_FEED: ActivityFeedItem[] = [
   { id: 'af-4', company: 'Sage Enterprise', action: 'reposted your thought leadership piece', timeAgo: '32 minutes ago', credits: 15, avatarSeed: 14 },
   { id: 'af-5', company: 'Cradle Tech', action: 'liked your comment on their post', timeAgo: '1 hour ago', credits: 3, avatarSeed: 15 },
   { id: 'af-6', company: 'Asamco Digital', action: 'mentioned you in a post', timeAgo: '2 hours ago', credits: 8, avatarSeed: 16 },
+  { id: 'af-7', company: 'Sage Enterprise', action: 'liked your post "The Death of Cold Outreach"', timeAgo: 'Just now', credits: 1, avatarSeed: 14 },
+  { id: 'af-8', company: 'Asamco Digital', action: 'reposted your article "Why B2B Ecosystems Will Define 2026"', timeAgo: '1m ago', credits: 2, avatarSeed: 16 },
+  { id: 'af-9', company: 'NovaTech Partners', action: 'commented on your post "The Hidden ROI of Ecosystem Credits"', timeAgo: '2m ago', credits: 3, avatarSeed: 18 },
+  { id: 'af-10', company: 'Cradle Tech', action: 'liked 3 of your posts', timeAgo: '3m ago', credits: 3, avatarSeed: 15 },
+  { id: 'af-11', company: 'Realm ID', action: 'reposted your article "How Ecosystems Beat Cold Outreach"', timeAgo: '4m ago', credits: 2, avatarSeed: 13 },
+  { id: 'af-12', company: 'Peresoft', action: 'liked your post "TPAC Impact Collective Case Study"', timeAgo: '5m ago', credits: 1, avatarSeed: 12 },
 ];
 
 // ─── LinkedIn Metrics ────────────────────────────────────────────────────────

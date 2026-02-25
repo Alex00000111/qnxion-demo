@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Search, Filter, MoreHorizontal, Plus, ArrowUpRight, ArrowDownLeft, ShieldAlert, UserX, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, MoreHorizontal, Plus, ArrowUpRight, ArrowDownLeft, ShieldAlert, UserX, Trash2, Zap } from 'lucide-react';
 import { Company } from '../types';
 
 const mockCompanies: Company[] = [
@@ -12,8 +12,172 @@ const mockCompanies: Company[] = [
   { id: '6', name: 'Asamco Digital', industry: 'Marketing', credits: 1950, avatar: 'https://picsum.photos/seed/asamco/40/40', isBlacklisted: false },
 ];
 
+// ── SVG node positions in a 600 × 280 viewBox ──────────────────────────────
+const CENTER = { x: 300, y: 140 };
+const PARTNERS = [
+  { id: 'techflow', name: 'TechFlow Solutions', x: 80,  y: 55,  gcu: '+3 GCU', dur: '2.4s', begin: '0s',   active: true  },
+  { id: 'peresoft', name: 'Peresoft',           x: 520, y: 55,  gcu: '+1 GCU', dur: '2.8s', begin: '0.6s', active: true  },
+  { id: 'realmid',  name: 'Realm ID',           x: 548, y: 190, gcu: '+2 GCU', dur: '2.0s', begin: '1.1s', active: true  },
+  { id: 'sage',     name: 'Sage Enterprise',    x: 390, y: 262, gcu: '+1 GCU', dur: '3.2s', begin: '0.3s', active: false },
+  { id: 'cradle',   name: 'Cradle Tech',        x: 85,  y: 232, gcu: '+2 GCU', dur: '2.6s', begin: '0.9s', active: false },
+];
+
+// ── Count-up hook (same as Dashboard) ───────────────────────────────────────
+function useCountUp(target: number, duration = 1200, run = true): number {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!run) return;
+    let start: number | null = null;
+    let raf: number;
+    const step = (timestamp: number) => {
+      if (!start) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(target * eased));
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration, run]);
+  return value;
+}
+
+// ── Credit Flow Visualisation ─────────────────────────────────────────────
+const CreditFlowTab: React.FC = () => {
+  const weeklyCredits = useCountUp(847, 1000, true);
+
+  return (
+    <div className="space-y-6">
+      {/* Header stat */}
+      <div className="flex items-center gap-3 p-5 bg-indigo-50 border border-indigo-100 rounded-2xl">
+        <div className="p-2 bg-indigo-600 text-white rounded-xl">
+          <Zap size={20} />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-indigo-500 uppercase tracking-wider">Credits flowing this week</p>
+          <p className="text-2xl font-extrabold text-indigo-900">{weeklyCredits.toLocaleString()} GCU</p>
+        </div>
+      </div>
+
+      {/* SVG graph */}
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-[0_4px_24px_rgba(99,102,241,0.06)] p-6">
+        <h3 className="text-sm font-bold text-gray-700 mb-4">Live Credit Flow</h3>
+        <div className="relative w-full" style={{ height: '320px' }}>
+          {/* SVG for lines + animated dots — behind HTML nodes */}
+          <svg
+            viewBox="0 0 600 280"
+            className="absolute inset-0 w-full h-full"
+            preserveAspectRatio="xMidYMid meet"
+          >
+            <defs>
+              <linearGradient id="cfDotGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#6366f1" />
+                <stop offset="100%" stopColor="#8b5cf6" />
+              </linearGradient>
+            </defs>
+
+            {PARTNERS.map(p => (
+              <React.Fragment key={p.id}>
+                {/* Define path for animateMotion */}
+                <path
+                  id={`cfpath-${p.id}`}
+                  d={`M ${CENTER.x} ${CENTER.y} L ${p.x} ${p.y}`}
+                  fill="none"
+                  stroke="none"
+                />
+                {/* Static line */}
+                <line
+                  x1={CENTER.x} y1={CENTER.y}
+                  x2={p.x} y2={p.y}
+                  stroke="#e0e7ff"
+                  strokeWidth="1.5"
+                />
+                {/* Mid-point GCU label */}
+                <text
+                  x={(CENTER.x + p.x) / 2}
+                  y={(CENTER.y + p.y) / 2 - 6}
+                  textAnchor="middle"
+                  fontSize="9"
+                  fontWeight="600"
+                  fill="#6366f1"
+                  opacity="0.75"
+                >
+                  {p.gcu}
+                </text>
+                {/* Traveling dot */}
+                <circle r="5" fill="url(#cfDotGrad)" opacity="0.9">
+                  <animateMotion dur={p.dur} repeatCount="indefinite" begin={p.begin}>
+                    <mpath href={`#cfpath-${p.id}`} />
+                  </animateMotion>
+                </circle>
+                {/* Active reciprocity pulse ring (SVG animate) */}
+                {p.active && (
+                  <circle cx={p.x} cy={p.y} r="28" fill="none" stroke="#10b981" strokeWidth="2">
+                    <animate attributeName="opacity" values="0.35;0;0.35" dur="4s" repeatCount="indefinite" />
+                    <animate attributeName="r" values="24;34;24" dur="4s" repeatCount="indefinite" />
+                  </circle>
+                )}
+              </React.Fragment>
+            ))}
+          </svg>
+
+          {/* HTML Nodes — positioned via percentage to match SVG viewBox */}
+          {/* Centre node — Emmanuel */}
+          <div
+            className="absolute flex flex-col items-center"
+            style={{ left: `${(CENTER.x / 600) * 100}%`, top: `${(CENTER.y / 280) * 100}%`, transform: 'translate(-50%, -50%)' }}
+          >
+            <div className="w-14 h-14 rounded-full bg-indigo-600 ring-4 ring-indigo-200 flex items-center justify-center shadow-lg shadow-indigo-200">
+              <span className="text-white text-xs font-extrabold">EM</span>
+            </div>
+            <span className="mt-1.5 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full">Emmanuel</span>
+          </div>
+
+          {/* Partner nodes */}
+          {PARTNERS.map(p => (
+            <div
+              key={p.id}
+              className="absolute flex flex-col items-center"
+              style={{ left: `${(p.x / 600) * 100}%`, top: `${(p.y / 280) * 100}%`, transform: 'translate(-50%, -50%)' }}
+            >
+              <div className={`w-10 h-10 rounded-full bg-white border-2 flex items-center justify-center shadow-sm overflow-hidden ${
+                p.active ? 'border-indigo-300' : 'border-gray-200'
+              }`}>
+                <img
+                  src={`https://picsum.photos/seed/${p.id}/40/40`}
+                  className="w-full h-full object-cover"
+                  alt={p.name}
+                />
+              </div>
+              <span className="mt-1 text-[9px] font-semibold text-gray-600 text-center leading-tight max-w-[64px]">
+                {p.name.split(' ').slice(0, 2).join(' ')}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center gap-6 pt-3 border-t border-gray-100 mt-2">
+          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+            <div className="w-3 h-3 rounded-full bg-indigo-500 opacity-80" />
+            Ecosystem Credit
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+            <div className="w-5 h-0.5 bg-indigo-300" />
+            Credit flowing to your wallet
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+            <div className="w-3 h-3 rounded-full border-2 border-green-500 opacity-70" />
+            Active reciprocity partner
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const EcosystemAdmin: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'partners' | 'blacklist'>('partners');
+  const [activeTab, setActiveTab] = useState<'partners' | 'creditflow' | 'blacklist'>('partners');
 
   return (
     <div className="space-y-6">
@@ -23,13 +187,19 @@ export const EcosystemAdmin: React.FC = () => {
           <p className="text-gray-500">Manage collaborative accounts, credits, and engagement rules</p>
         </div>
         <div className="flex bg-white border border-gray-200 p-1.5 rounded-xl shadow-sm">
-          <button 
+          <button
             onClick={() => setActiveTab('partners')}
             className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'partners' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
           >
             Partners
           </button>
-          <button 
+          <button
+            onClick={() => setActiveTab('creditflow')}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'creditflow' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
+          >
+            Credit Flow
+          </button>
+          <button
             onClick={() => setActiveTab('blacklist')}
             className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'blacklist' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
           >
@@ -38,14 +208,14 @@ export const EcosystemAdmin: React.FC = () => {
         </div>
       </div>
 
-      {activeTab === 'partners' ? (
+      {activeTab === 'partners' && (
         <>
           <div className="flex gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-              <input 
-                type="text" 
-                placeholder="Search companies, industries or admins..." 
+              <input
+                type="text"
+                placeholder="Search companies, industries or admins..."
                 className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
               />
             </div>
@@ -107,14 +277,18 @@ export const EcosystemAdmin: React.FC = () => {
             </table>
           </div>
         </>
-      ) : (
+      )}
+
+      {activeTab === 'creditflow' && <CreditFlowTab />}
+
+      {activeTab === 'blacklist' && (
         <div className="space-y-6">
           <div className="bg-red-50 border border-red-100 rounded-2xl p-6 flex items-start gap-4">
             <ShieldAlert className="text-red-600 mt-1" />
             <div>
               <h3 className="font-bold text-red-900 text-lg">Engagement Exclusions</h3>
               <p className="text-red-700 text-sm max-w-2xl">
-                Add companies or individuals here whose content you never want to automatically like, comment on, or share. 
+                Add companies or individuals here whose content you never want to automatically like, comment on, or share.
                 Excluding partners will also prevent them from reacting to your brand content.
               </p>
             </div>
