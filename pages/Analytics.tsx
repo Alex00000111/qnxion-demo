@@ -79,16 +79,16 @@ export const Analytics: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Software Value Header */}
+      {/* Pipeline Value Header */}
       <div className="bg-indigo-900 rounded-[32px] p-8 text-white relative overflow-hidden shadow-xl">
         <div className="absolute top-0 right-0 p-12 opacity-10">
           <TrendingUp size={160} />
         </div>
         <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
           <div className="space-y-2">
-            <p className="text-indigo-300 text-sm font-bold uppercase tracking-widest">Est. Software Value</p>
-            <h2 className="text-5xl font-extrabold">$4,280<span className="text-indigo-400 text-xl font-medium ml-2">saved/mo</span></h2>
-            <p className="text-xs text-indigo-300">Based on manual time saved & engagement reach cost</p>
+            <p className="text-indigo-300 text-sm font-bold uppercase tracking-widest">Qualified Pipeline</p>
+            <h2 className="text-5xl font-extrabold">$86,400<span className="text-indigo-400 text-xl font-medium ml-2">/ month</span></h2>
+            <p className="text-xs text-indigo-300">Estimated deal value from ecosystem-initiated introductions</p>
           </div>
           <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20">
             <div className="flex items-center gap-3 mb-1">
