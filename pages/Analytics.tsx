@@ -86,9 +86,9 @@ export const Analytics: React.FC = () => {
         </div>
         <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
           <div className="space-y-2">
-            <p className="text-indigo-300 text-sm font-bold uppercase tracking-widest">Qualified Pipeline</p>
-            <h2 className="text-5xl font-extrabold">$86,400<span className="text-indigo-400 text-xl font-medium ml-2">/ month</span></h2>
-            <p className="text-xs text-indigo-300">Estimated deal value from ecosystem-initiated introductions</p>
+            <p className="text-indigo-300 text-sm font-bold uppercase tracking-widest">Decision-Maker Reach</p>
+            <h2 className="text-5xl font-extrabold">12,400<span className="text-indigo-400 text-xl font-medium ml-2">/ month</span></h2>
+            <p className="text-xs text-indigo-300">Unique C-suite, VP & Director-level professionals who engaged with your content</p>
           </div>
           <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20">
             <div className="flex items-center gap-3 mb-1">
